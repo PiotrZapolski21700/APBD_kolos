@@ -44,44 +44,67 @@ public class DbService : IDbService
 
     public async Task<CourseCreatedResponseDto> CreateCourseWithEnrollmentsAsync(CourseCreateDto courseData)
     {
+        if (string.IsNullOrWhiteSpace(courseData.Title) || 
+            string.IsNullOrWhiteSpace(courseData.Credits) || 
+            string.IsNullOrWhiteSpace(courseData.Teacher) ||
+            courseData.Students == null || 
+            !courseData.Students.Any())
+        {
+            throw new ArgumentException("Invalid course data");
+        }
+
         using var transaction = await _context.Database.BeginTransactionAsync();
         
         try
         {
-            // Tworzenie nowego kursu
-            var newCourse = new Course
-            {
-                Title = courseData.Title,
-                Credits = courseData.Credits,
-                Teacher = courseData.Teacher
-            };
+            var existingCourse = await _context.Courses
+                .FirstOrDefaultAsync(c => 
+                    c.Title.ToLower() == courseData.Title.ToLower() && 
+                    c.Teacher.ToLower() == courseData.Teacher.ToLower());
 
-            await _context.Courses.AddAsync(newCourse);
-            await _context.SaveChangesAsync();
+            Course course;
+            if (existingCourse != null)
+            {
+                course = existingCourse;
+            }
+            else
+            {
+                course = new Course
+                {
+                    Title = courseData.Title,
+                    Credits = courseData.Credits,
+                    Teacher = courseData.Teacher
+                };
+                await _context.Courses.AddAsync(course);
+                await _context.SaveChangesAsync();
+            }
 
             var enrollmentsList = new List<EnrollmentResponseDto>();
             var enrollmentDate = DateTime.Now;
 
-            // Przetwarzanie studentów
             foreach (var studentData in courseData.Students)
             {
-                // Sprawdzenie czy student już istnieje
+                if (string.IsNullOrWhiteSpace(studentData.FirstName) || 
+                    string.IsNullOrWhiteSpace(studentData.LastName) || 
+                    string.IsNullOrWhiteSpace(studentData.Email))
+                {
+                    throw new ArgumentException("Invalid student data");
+                }
+
                 var existingStudent = await _context.Students
                     .FirstOrDefaultAsync(s => 
-                        s.FirstName == studentData.FirstName && 
-                        s.LastName == studentData.LastName && 
-                        s.Email == studentData.Email);
+                        s.FirstName.ToLower() == studentData.FirstName.ToLower() && 
+                        s.LastName.ToLower() == studentData.LastName.ToLower() && 
+                        s.Email.ToLower() == studentData.Email.ToLower());
 
                 Student student;
                 
                 if (existingStudent != null)
                 {
-                    // Student istnieje - używamy istniejącego
                     student = existingStudent;
                 }
                 else
                 {
-                    // Student nie istnieje - tworzymy nowego
                     student = new Student
                     {
                         FirstName = studentData.FirstName,
@@ -93,24 +116,21 @@ public class DbService : IDbService
                     await _context.SaveChangesAsync();
                 }
 
-                // Sprawdzenie czy student nie jest już zapisany na ten kurs
                 var existingEnrollment = await _context.Enrollments
-                    .AnyAsync(e => e.Student_ID == student.ID && e.Course_ID == newCourse.ID);
+                    .AnyAsync(e => e.Student_ID == student.ID && e.Course_ID == course.ID);
 
                 if (!existingEnrollment)
                 {
-                    // Tworzenie wpisu w tabeli Enrollment
                     var enrollment = new Enrollment
                     {
                         Student_ID = student.ID,
-                        Course_ID = newCourse.ID,
+                        Course_ID = course.ID,
                         EnrollmentDate = enrollmentDate
                     };
 
                     await _context.Enrollments.AddAsync(enrollment);
                 }
 
-                // Dodanie do listy odpowiedzi
                 enrollmentsList.Add(new EnrollmentResponseDto
                 {
                     StudentId = student.ID,
@@ -124,16 +144,17 @@ public class DbService : IDbService
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            // Przygotowanie odpowiedzi
             return new CourseCreatedResponseDto
             {
-                Message = "Kurs został utworzony i studenci zostali zapisani.",
+                Message = existingCourse != null 
+                    ? "Studenci zostali zapisani na istniejący kurs." 
+                    : "Kurs został utworzony i studenci zostali zapisani.",
                 Course = new CourseResponseDto
                 {
-                    Id = newCourse.ID,
-                    Title = newCourse.Title,
-                    Credits = newCourse.Credits,
-                    Teacher = newCourse.Teacher
+                    Id = course.ID,
+                    Title = course.Title,
+                    Credits = course.Credits,
+                    Teacher = course.Teacher
                 },
                 Enrollments = enrollmentsList
             };
