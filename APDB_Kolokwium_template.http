@@ -1,6 +1,48 @@
-@APDB_Kolokwium_template_HostAddress = http://localhost:5081
+@APDB_Kolokwium_template_HostAddress = http://localhost:5283
 
-GET {{APDB_Kolokwium_template_HostAddress}}/weatherforecast/
+### Get all enrollments
+GET {{APDB_Kolokwium_template_HostAddress}}/api/enrollments
 Accept: application/json
 
 ###
+
+### Create course with enrollments - new students
+POST {{APDB_Kolokwium_template_HostAddress}}/api/courses/with-enrollments
+Content-Type: application/json
+
+{
+  "title": "Programowanie WebAPI w .NET",
+  "credits": "5 ECTS",
+  "teacher": "dr inż. Jan Nowak",
+  "students": [
+    {
+      "firstName": "Karolina",
+      "lastName": "Zielińska",
+      "email": "karolina.zielinska@student.edu.pl"
+    },
+    {
+      "firstName": "Piotr",
+      "lastName": "Nowak",
+      "email": "piotr.nowak@student.edu.pl"
+    }
+  ]
+}
+
+###
+
+### Create course with enrollments - existing student
+POST {{APDB_Kolokwium_template_HostAddress}}/api/courses/with-enrollments
+Content-Type: application/json
+
+{
+  "title": "Zaawansowane Bazy Danych",
+  "credits": "6 ECTS",
+  "teacher": "prof. Kowalczyk",
+  "students": [
+    {
+      "firstName": "Anna",
+      "lastName": "Nowak",
+      "email": "anna.nowak@example.edu"
+    }
+  ]
+}
