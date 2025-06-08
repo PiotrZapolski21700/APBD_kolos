@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APDB_Kolokwium_template", "APDB_Kolokwium_template.csproj", "{DED20E64-13C7-47FE-8643-156C78BECC8B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DED20E64-13C7-47FE-8643-156C78BECC8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DED20E64-13C7-47FE-8643-156C78BECC8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DED20E64-13C7-47FE-8643-156C78BECC8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DED20E64-13C7-47FE-8643-156C78BECC8B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,40 @@
+
+version: '3.8'
+
+services:
+  apbd-app:
+    container_name: apbd_application
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5283:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__Default=Server=apbd-db;Database=APDB_Database;User Id=sa;Password=StrongPassword123!;TrustServerCertificate=true
+    depends_on:
+      - apbd-db
+    networks:
+      - apbd-network
+
+  apbd-db:
+    container_name: apbd_database
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=StrongPassword123!
+      - MSSQL_PID=Developer
+    volumes:
+      - apbd-db-data:/var/opt/mssql
+    networks:
+      - apbd-network
+
+networks:
+  apbd-network:
+    driver: bridge
+
+volumes:
+  apbd-db-data:
